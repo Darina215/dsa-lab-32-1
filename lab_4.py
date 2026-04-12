@@ -14,9 +14,8 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 
 
-# -------------------------
 # Модель пользователя
-# -------------------------
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
@@ -29,9 +28,8 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# -------------------------
 # Главная страница
-# -------------------------
+
 @app.route('/')
 def index():
     if not current_user.is_authenticated:
@@ -39,17 +37,15 @@ def index():
     return render_template('index.html', user=current_user)
 
 
-# -------------------------
 # Страница входа (GET)
-# -------------------------
+
 @app.route('/login', methods=['GET'])
 def login():
     return render_template('login.html')
 
 
-# -------------------------
 # Авторизация (POST)
-# -------------------------
+
 @app.route('/login', methods=['POST'])
 def login_post():
     email = request.form.get('email')
@@ -73,17 +69,15 @@ def login_post():
     return redirect(url_for('index'))
 
 
-# -------------------------
 # Страница регистрации (GET)
-# -------------------------
+
 @app.route('/signup', methods=['GET'])
 def signup():
     return render_template('signup.html')
 
 
-# -------------------------
 # Регистрация (POST)
-# -------------------------
+
 @app.route('/signup', methods=['POST'])
 def signup_post():
     name = request.form.get('name')
@@ -112,9 +106,8 @@ def signup_post():
     return redirect(url_for('login'))
 
 
-# -------------------------
 # Выход
-# -------------------------
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -122,9 +115,8 @@ def logout():
     return redirect(url_for('login'))
 
 
-# -------------------------
 # Запуск
-# -------------------------
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

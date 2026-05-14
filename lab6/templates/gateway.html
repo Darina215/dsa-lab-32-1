@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Currency Manager</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin: 5px 0 10px;
+            font-size: 18px;
+        }
+
+        h3 {
+            color: #34495e;
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        form {
+            background: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 8px;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            padding: 6px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 6px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        hr {
+            margin: 8px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        a {
+            color: #2980b9;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .result {
+            background: #ecf0f1;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 13px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+
+    <body>
+
+        <div class="container">
+
+            <h2>Курс к рублю</h2>
+
+            <hr>
+
+            <h3>Добавить валюту</h3>
+            <form method="post" action="/add">
+                <input name="currency_name" placeholder="Валюта" required>
+                <input name="rate" placeholder="Курс к рублю" required>
+                <button type="submit">Добавить</button>
+            </form>
+
+            <hr>
+
+            <h3>Обновить курс</h3>
+            <form method="post" action="/update">
+                <input name="currency_name" placeholder="Валюта" required>
+                <input name="rate" placeholder="Курс к рублю" required>
+                <button type="submit">Обновить</button>
+            </form>
+
+            <hr>
+
+            <h3>Удалить валюту</h3>
+            <form method="post" action="/delete">
+                <input name="currency_name" placeholder="Валюта" required>
+                <button type="submit">Удалить</button>
+            </form>
+
+            <hr>
+
+            <h3>Конвертация</h3>
+            <form method="get" action="/convert">
+                <input name="currency" placeholder="Валюта" required>
+                <input name="amount" placeholder="Сумма в валюте" required>
+                <button type="submit">Конвертировать</button>
+            </form>
+
+            <hr>
+
+            <h3>Список валют</h3>
+            <a href="/list">Показать список</a>
+
+            <hr>
+
+            <h3>Результат:</h3>
+            <div class="result">
+                {{ message|safe }}
+            </div>
+
+        </div>
+
+    </body>
+</html>

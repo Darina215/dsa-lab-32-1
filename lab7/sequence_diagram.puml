@@ -1,0 +1,90 @@
+@startuml
+title Диаграмма последовательности — Управление курсами валют (микросервисы)
+
+actor "Пользователь" as User
+participant "start.sh\n(запуск)" as Script
+participant "Gateway\n(Flask :5000)" as Gateway
+participant "Currency Manager\n(Flask :5001)" as CurrencyM
+participant "Data Manager\n(Flask :5002)" as DataM
+database "PostgreSQL\n(LR6.currencies)" as DB
+
+== Запуск системы ==
+User -> Script: bash start.sh
+Script -> CurrencyM: python currency_manager.py &\n(фоновый запуск)
+Script -> DataM: python data_manager.py &\n(фоновый запуск)
+Script -> Gateway: python gateway.py
+Gateway -> Gateway: запуск на порту 5000
+Gateway --> User: открыта страница gateway.html
+
+== 1. Добавление валюты ==
+User -> Gateway: POST /add\n(currency_name, rate)
+Gateway -> CurrencyM: POST /load\n{currency_name, rate}
+CurrencyM -> DB: SELECT * FROM currencies\nWHERE currency_name = ...
+alt Валюта уже существует
+    DB --> CurrencyM: запись найдена
+    CurrencyM --> Gateway: 400 Bad Request\n{"error": "Currency already exists"}
+    Gateway --> User: сообщение "Валюта уже существует"
+else Валюты нет
+    DB --> CurrencyM: запись не найдена
+    CurrencyM -> DB: INSERT INTO currencies\n(currency_name, rate)
+    DB --> CurrencyM: OK
+    CurrencyM --> Gateway: 200 OK\n{"status": "created"}
+    Gateway --> User: "Валюта добавлена"
+end
+
+== 2. Обновление курса ==
+User -> Gateway: POST /update\n(currency_name, rate)
+Gateway -> CurrencyM: POST /update_currency\n{currency_name, rate}
+CurrencyM -> DB: SELECT * FROM currencies\nWHERE currency_name = ...
+alt Валюта не найдена
+    DB --> CurrencyM: запись не найдена
+    CurrencyM --> Gateway: 404 Not Found\n{"error": "Currency not found"}
+    Gateway --> User: "Валюта не найдена"
+else Валюта найдена
+    DB --> CurrencyM: запись найдена
+    CurrencyM -> DB: UPDATE currencies\nSET rate = ... WHERE currency_name = ...
+    DB --> CurrencyM: OK
+    CurrencyM --> Gateway: 200 OK\n{"status": "updated"}
+    Gateway --> User: "Курс обновлён"
+end
+
+== 3. Удаление валюты ==
+User -> Gateway: POST /delete\n(currency_name)
+Gateway -> CurrencyM: POST /delete\n{currency_name}
+CurrencyM -> DB: SELECT * FROM currencies\nWHERE currency_name = ...
+alt Валюта не найдена
+    DB --> CurrencyM: запись не найдена
+    CurrencyM --> Gateway: 404 Not Found\n{"error": "Currency not found"}
+    Gateway --> User: "Валюта не найдена"
+else Валюта найдена
+    DB --> CurrencyM: запись найдена
+    CurrencyM -> DB: DELETE FROM currencies\nWHERE currency_name = ...
+    DB --> CurrencyM: OK
+    CurrencyM --> Gateway: 200 OK\n{"status": "deleted"}
+    Gateway --> User: "Валюта удалена"
+end
+
+== 4. Конвертация валюты в рубли ==
+User -> Gateway: GET /convert?currency=USD&amount=100
+Gateway -> DataM: GET /convert?currency=USD&amount=100
+DataM -> DB: SELECT rate FROM currencies\nWHERE currency_name = 'USD'
+alt Валюта не найдена
+    DB --> DataM: запись не найдена
+    DataM --> Gateway: 404 Not Found\n{"error": "Currency not found"}
+    Gateway --> User: "Ошибка конвертации"
+else Валюта найдена
+    DB --> DataM: rate = 92.50
+    DataM -> DataM: result = 100 * 92.50 = 9250.0
+    DataM --> Gateway: 200 OK\n{"currency": "USD", "amount": 100, "converted": 9250.0}
+    Gateway --> User: "100 → 9250.0 (USD)"
+end
+
+== 5. Получение списка всех валют ==
+User -> Gateway: GET /list
+Gateway -> DataM: GET /currencies
+DataM -> DB: SELECT currency_name, rate FROM currencies
+DB --> DataM: список валют
+DataM --> Gateway: 200 OK\n[\n{"currency_name": "USD", "rate": 92.50},\n...\n]
+Gateway -> Gateway: форматирует вывод
+Gateway --> User: "USD: 92.5\nEUR: 98.3\n..."
+@enduml

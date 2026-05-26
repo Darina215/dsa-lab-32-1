@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finance Register</title>
+</head>
+<body>
+
+    <h1>Регистрация</h1>
+
+    <input id="login" type="text" placeholder="Логин">
+    <br><br>
+
+    <input id="password" type="password" placeholder="Пароль">
+    <br><br>
+
+    <button onclick="register()">Зарегистрироваться</button>
+
+    <br><br>
+
+    <a href="/finance_login">Авторизация</a>
+
+    <script>
+    function register() {
+        fetch("/reg", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                login: document.getElementById("login").value,
+                password: document.getElementById("password").value
+            })
+        }).then(() => {
+            window.location.href = "/finance_login";
+        });
+    }
+    </script>
+
+</body>
+</html>

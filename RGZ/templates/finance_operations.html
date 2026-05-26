@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finance Operations</title>
+</head>
+<body>
+
+    <h1>Операции пользователя</h1>
+
+    <h2>
+    Бюджет:
+    {{ budget or "не установлен" }}
+    {{ currency }}
+    </h2>
+
+    <table border="1">
+
+        <tr>
+            <th>Дата</th>
+            <th>Сумма</th>
+            <th>Тип операции</th>
+        </tr>
+
+        {% for op in operations %}
+
+        <tr>
+            <td>{{ op.date }}</td>
+            <td>{{ op.sum }} {{ currency }}</td>
+            <td>{{ op.type }}</td>
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    <br><br>
+
+    <a href="/budget">💰 Бюджет</a> |
+    <a href="/add_operation_page">➕ Добавить операцию</a> |
+    <a href="/operations?currency=RUB">📊 RUB</a> |
+    <a href="/operations?currency=USD">USD</a> |
+    <a href="/operations?currency=EUR">EUR</a>
+
+    <br><br>
+
+</body>
+</html>

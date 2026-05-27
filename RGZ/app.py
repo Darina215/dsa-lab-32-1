@@ -180,7 +180,7 @@ def register():
         return redirect("/finance_login")  
 
     except Exception as e:
-        print(e)  # лог ошибки
+        print(e)  
         return jsonify({"message": "UNEXPECTED ERROR"}), 500  
 
 
@@ -200,70 +200,64 @@ def login():
         login = request.form.get("login")
         password = request.form.get("password")
 
-        user = User.query.filter_by(
-            login=login
-        ).first()
+        user = User.query.filter_by(login=login).first()
 
         if not user:
+            return jsonify({"message": "User not found"}), 404
 
-            return jsonify({
-                "message": "User not found"
-            }), 404
-
-        if not check_password_hash(
-            user.password_hash,
-            password
-        ):
-
-            return jsonify({
-                "message": "Wrong password"
-            }), 401
+        if not check_password_hash(user.password_hash, password):
+            return jsonify({"message": "Wrong password"}), 401
 
         login_user(user)
 
         return redirect("/operations")
 
     except Exception as e:
-
         print(e)
-
-        return jsonify({
-            "message": "UNEXPECTED ERROR"
-        }), 500
-
+        return jsonify({"message": "UNEXPECTED ERROR"}), 500
 
 
 @app.route("/logout")
 @login_required
 def logout():
-
     logout_user()
-
     return redirect("/finance_login")
 
 
 @app.route("/add_operation", methods=["POST"])
 @login_required
 def add_operation():
-
     try:
-        data = request.get_json()  
-
+        data = request.get_json()
+        
+        type_op = data.get("type_operation")
+        sum_op = data.get("sum")
+        date_op = data.get("date")
+        
+        if not type_op or not sum_op or not date_op:
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        if type_op not in ["income", "expense"]:
+            return jsonify({"message": "Invalid operation type"}), 400
+        
+        if float(sum_op) <= 0:
+            return jsonify({"message": "Sum must be positive"}), 400
+        
         operation = Operation(
-            type_operation=data.get("type_operation"),  
-            sum=data.get("sum"),  
-            date=data.get("date"),  
-            user_id=current_user.id  
+            type_operation=type_op,
+            sum=sum_op,
+            date=date_op,
+            user_id=current_user.id
         )
-
-        db.session.add(operation)  
-        db.session.commit()  
-
-        return jsonify({"message": "OK"}), 200  
-
+        
+        db.session.add(operation)
+        db.session.commit()
+        
+        return jsonify({"message": "OK"}), 200
+        
     except Exception as e:
-        print(e)  # лог ошибки
-        return jsonify({"message": "UNEXPECTED ERROR"}), 500  
+        print(e)
+        return jsonify({"message": "UNEXPECTED ERROR"}), 500
 
 
 @app.route("/budget", methods=["GET", "POST"])
@@ -273,10 +267,7 @@ def budget():
     try:
 
         if request.method == "GET":
-
-            return render_template(
-                "finance_budget.html"
-            )
+            return render_template("finance_budget.html")
 
         amount = request.form.get("amount")
 
@@ -309,12 +300,8 @@ def budget():
         )
 
     except Exception as e:
-
         print(e)
-
-        return jsonify({
-            "message": "UNEXPECTED ERROR"
-        }), 500
+        return jsonify({ "message": "UNEXPECTED ERROR"}), 500
 
 
 @app.route("/operations", methods=["GET"])
@@ -373,12 +360,8 @@ def operations():
         )
 
     except Exception as e:
-
         print(e)
-
-        return jsonify({
-            "message": "UNEXPECTED ERROR"
-        }), 500
+        return jsonify({"message": "UNEXPECTED ERROR"}), 500
 
 
 @app.route("/add_operation_page")
